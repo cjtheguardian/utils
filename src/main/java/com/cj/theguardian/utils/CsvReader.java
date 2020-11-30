@@ -39,7 +39,7 @@ public class CsvReader {
 		this.reader = new BufferedReader(new InputStreamReader(stream));
 		if (hasHeaders) {
 			try {
-				String headers = this.reader.readLine();
+				String headers = this.reader.readLine().replace("\uFEFF","");
 				this.headers = headers.split(",");
 			} catch (IOException var4) {
 			}
@@ -60,7 +60,7 @@ public class CsvReader {
 		Map<String,String> rowMap = new HashMap<>();
 		for(int i = 0; i < nextRow.length;i++) {
 			String header = headers != null ? headers[i] : "" + (i+1);
-			rowMap.put(header, nextRow[i]);
+			rowMap.put(header, nextRow[i].replace("\uFEFF",""));
 		}
 		return rowMap;
 	}
