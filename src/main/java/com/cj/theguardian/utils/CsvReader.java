@@ -18,6 +18,16 @@ public class CsvReader {
 
 	private String[] headers;
 
+	public static Map<String,String> nextRowAsMap(CsvReader reader, String[] headers) {
+		Map<String,String> mappedByColumnNum = reader.nextRowAsMap();
+		Map<String,String> mappedByHeaderName = new HashMap<>();
+		for (Map.Entry<String, String> mappedByColumn : mappedByColumnNum.entrySet()) {
+			String headerName = headers[Integer.parseInt(mappedByColumn.getKey()) - 1];
+			mappedByHeaderName.put(headerName, mappedByColumn.getValue());
+		}
+		return mappedByHeaderName;
+	}
+
 	public CsvReader(File file, boolean hasHeaders) throws FileNotFoundException {
 		if (file.exists() && !file.isDirectory()) {
 			this.createReader(new FileInputStream(file), hasHeaders);
@@ -63,6 +73,10 @@ public class CsvReader {
 			rowMap.put(header, nextRow[i].replace("\uFEFF",""));
 		}
 		return rowMap;
+	}
+
+	public Map<String,String> nextRowAsMap(String[] headers) {
+		return nextRowAsMap(this, headers);
 	}
 
 	public String[] nextRow() {
