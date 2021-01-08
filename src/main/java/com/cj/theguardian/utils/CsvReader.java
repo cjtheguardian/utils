@@ -18,6 +18,8 @@ public class CsvReader {
 
 	private String[] headers;
 
+	private boolean usePipeDelimiter = false;
+
 	public static Map<String,String> nextRowAsMap(CsvReader reader, String[] headers) {
 		Map<String,String> mappedByColumnNum = reader.nextRowAsMap();
 		Map<String,String> mappedByHeaderName = new HashMap<>();
@@ -28,12 +30,18 @@ public class CsvReader {
 		return mappedByHeaderName;
 	}
 
-	public CsvReader(File file, boolean hasHeaders) throws FileNotFoundException {
+
+	public CsvReader(File file, boolean hasHeaders, boolean usePipeDelimiter) throws FileNotFoundException {
 		if (file.exists() && !file.isDirectory()) {
 			this.createReader(new FileInputStream(file), hasHeaders);
 		} else {
 			throw new IllegalArgumentException("File does not exist or is a direcotry " + file.getAbsolutePath());
 		}
+		this.usePipeDelimiter = usePipeDelimiter;
+	}
+
+	public CsvReader(File file, boolean hasHeaders) throws FileNotFoundException {
+		this(file, hasHeaders, false);
 	}
 
 	public CsvReader(String classpathResource, boolean hasHeaders) {
@@ -90,12 +98,32 @@ public class CsvReader {
 			return null;
 		}
 
-		String[] commaDelimitedLine = null;
+		String[] pipeDelimitedLine = null;
 		if (nextLine != null) {
-			commaDelimitedLine = nextLine.split(",");
+			String delimiter = ",";
+			if(usePipeDelimiter) {
+				nextLine = convertToPipeDelimited(nextLine);
+				delimiter = "\\|";
+			}
+			pipeDelimitedLine = nextLine.split(delimiter);
 		}
 
-		return commaDelimitedLine;
+		return pipeDelimitedLine;
+	}
+
+	private String convertToPipeDelimited(String nextLine) {
+		StringBuilder sb = new StringBuilder();
+		boolean inText = false;
+		for(char c : nextLine.toCharArray()) {
+			if(c =='"') {
+				inText = !inText;
+			}
+			if(!inText && c ==',') {
+				c = '|';
+			}
+			sb.append(c);
+		}
+		return sb.toString();
 	}
 
 	public void close() {
