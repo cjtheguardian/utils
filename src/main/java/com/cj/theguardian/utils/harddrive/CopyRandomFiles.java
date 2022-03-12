@@ -3,12 +3,10 @@ package com.cj.theguardian.utils.harddrive;
 import com.cj.theguardian.utils.file.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.xml.bind.annotation.XmlType;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.cj.theguardian.utils.file.FileUtils.convertToWindowsPath;
 
 public class CopyRandomFiles {
 
@@ -62,21 +60,8 @@ public class CopyRandomFiles {
 
         System.out.println("Considering files size: " + allFilenames.size());
 
-        Collections.shuffle(allFilenames);
-        Random random = new Random(new Date().getTime());
+        List<String> filenamesToPull = decideFilesToPull(allFilenames).stream().sorted().collect(Collectors.toList());
 
-        List<String> filenamesToPull = new LinkedList<>();
-        if(allFilenames.isEmpty()) {
-            throw new RuntimeException("no files available");
-        }
-        for(int i =0;i<numberToCopy;i++) {
-            if(i >= allFilenames.size()) {
-                break;
-            }
-            int position = random.nextInt(allFilenames.size());
-            filenamesToPull.add(allFilenames.get(position));
-        }
-        System.out.println("downloading files:");
         for (String file : filenamesToPull) {
             System.out.println("downloading "+file);
             File source = new File(sourceDir, file);
@@ -84,12 +69,29 @@ public class CopyRandomFiles {
             if(!dest.exists()) {
                 FileUtils.copyFile(source, dest);
             }
-            System.out.println("finished " + file);
         }
 
         if(ignoredFileList != null) {
             FileUtils.writeToFile(ignoredFileList, filenamesToPull, true);
         }
+    }
+
+    private Set<String> decideFilesToPull(List<String> allFilenames) {
+        if(allFilenames.size() < numberToCopy) {
+            return new HashSet<>(allFilenames);
+        }
+        Collections.shuffle(allFilenames);
+        Random random = new Random(new Date().getTime());
+
+        Set<String> filenamesToPull = new HashSet<>();
+        if(allFilenames.isEmpty()) {
+            throw new RuntimeException("no files available");
+        }
+        while(filenamesToPull.size() < numberToCopy) {
+            int position = random.nextInt(allFilenames.size());
+            filenamesToPull.add(allFilenames.get(position));
+        }
+        return filenamesToPull;
     }
 
 }

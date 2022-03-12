@@ -51,17 +51,17 @@ public class HardDriveUtils {
         String sourceDir = args[1];
         String destDir = args[2];
         String arg3 = args[3];
-        String ignoredList = null;
+        String ignoreListFile = null;
         Integer numToCopy = null;
         if(arg3.matches("[0-9]{1,3}")) {
             numToCopy = Integer.parseInt(arg3);
         } else {
-            ignoredList = arg3;
+            ignoreListFile = arg3;
         }
         if(args.length > 4) {
             numToCopy = Integer.parseInt(args[4]);
         }
-        CopyRandomFiles main = new CopyRandomFiles(sourceDir, destDir, ignoredList, numToCopy);
+        CopyRandomFiles main = new CopyRandomFiles(sourceDir, destDir, ignoreListFile, numToCopy);
         main.copyFiles();
     }
 
