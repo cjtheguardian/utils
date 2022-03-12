@@ -13,6 +13,10 @@ public class HardDriveUtils {
         SYNC;
     }
     public static void main(String[] args) {
+        System.out.println("Note: if shit aint working right, check VTRoot dir and unblock in comodo");
+        for(String arg : args) {
+            System.out.println(arg);
+        }
         Context context = Context.valueOf(args[0]);
         handleContext(context,args);
     }
@@ -30,8 +34,8 @@ public class HardDriveUtils {
     }
 
     private static void handleSync(String[] args) {
-        String sourceDir = args[1];
-        String destDir = args[2];
+        String sourceDir = FileUtils.convertToWindowsPath(args[1]);
+        String destDir = FileUtils.convertToWindowsPath(args[2]);
         List<String> ignoredList = new LinkedList<>();
         for(int i = 3 ; i < args.length ; i++) {
             String[] split = args[i].split("\\|");

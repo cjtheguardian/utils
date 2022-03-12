@@ -3,6 +3,7 @@ package com.cj.theguardian.utils.harddrive;
 import com.cj.theguardian.utils.file.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -65,11 +66,6 @@ public class SyncDirectory {
     }
 
     public void sync() {
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-
-        }
         sync(sourceRoot, destRoot, archiveRoot);
         for (String error : errors) {
             System.err.println(error);
@@ -80,12 +76,28 @@ public class SyncDirectory {
         List<SyncFile> filesToSync = prepareFileSyncs(sourceRoot, destRoot, archiveRoot);
         long totalSize = filesToSync.stream().mapToLong(f -> f.source.length()).sum();
         long totalFiles = filesToSync.stream().count();
-        BigDecimal totalGb = BigDecimal.valueOf(totalSize).divide(BigDecimal.valueOf(1000000000), 2, RoundingMode.HALF_UP);
+        BigDecimal totalGb = BigDecimal.valueOf(totalSize).divide(BigDecimal.valueOf(1073741824), 2, RoundingMode.HALF_UP);
         System.out.println("Found " + totalFiles + " comprising of ~" + totalGb + " GB");
-        try {
-            Thread.sleep(5000);
-        } catch (Exception e) {
+        if(totalFiles == 0) {
+            return;
         }
+        try {
+            System.out.println("Continue? (y/n)");
+            int confirm = System.in.read();
+            if(confirm == -1) {
+                throw new RuntimeException("Unexpected end of stream");
+            }
+            byte[] asBytes = new byte[1];
+            asBytes[0] = (byte) confirm;
+            String confirmStr = new String(asBytes);
+            if(!confirmStr.toUpperCase().equals("Y")) {
+                System.out.println("Not syncing");
+                return;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("error reading conf input", e);
+        }
+
         long totalSynced = 0;
         long filesSynced = 0;
         for (SyncFile syncFile : filesToSync) {
@@ -145,12 +157,12 @@ public class SyncDirectory {
 
         private void syncFile() {
             if (dest.exists()) {
-                System.out.println("WARNING: source file already exists at destination, but may be different size, archiving existing" + source.getAbsolutePath());
+                System.out.println("WARNING: source file already exists at destination, but may be different size, archiving existing" + dest.getAbsolutePath());
                 FileUtils.moveFile(dest, archive);
             } else {
                 dest.getParentFile().mkdirs();
             }
-            System.out.println("Copying file " + source.getAbsolutePath());
+            System.out.println("Copying file " + source.getAbsolutePath() + " to " + dest.getAbsolutePath());
             FileUtils.copyFile(source, dest);
 
         }

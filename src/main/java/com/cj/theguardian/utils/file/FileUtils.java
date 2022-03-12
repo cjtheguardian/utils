@@ -20,6 +20,7 @@ public class FileUtils {
 
 	public static String convertToWindowsPath(String fullPath) {
 		String path = fullPath;
+		System.out.println(SystemUtils.OS_NAME);
 		if (SystemUtils.IS_OS_WINDOWS && fullPath.startsWith("/")) {
 			String drive = fullPath.substring(1,2);
 			 path = drive.toUpperCase()+":\\"+fullPath.substring(3);
